@@ -1,6 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
-import Dashboard from './pages/Dashboard';
+import DashboardLayout from './layouts/DashboardLayout';
+import SubmissionPage from './pages/dashboard/SubmissionPage';
+import OverviewPage from './pages/dashboard/OverviewPage';
+// import VulnerabilitiesPage from './pages/dashboard/VulnerabilitiesPage';
+// import CorrectionsPage from './pages/dashboard/CorrectionsPage';
+// import ReportPage from './pages/dashboard/ReportPage';
 
 export default function App() {
   const isAuthenticated = !!localStorage.getItem('token');
@@ -8,9 +13,21 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
-        <Route path="/login" element={!isAuthenticated ? <AuthPage /> : <Navigate to="/dashboard" />} />
-        <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard/soumission" /> : <Navigate to="/login" />} />
+        <Route path="/login" element={!isAuthenticated ? <AuthPage /> : <Navigate to="/dashboard/soumission" />} />
+
+        {isAuthenticated && (
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<Navigate to="soumission" />} />
+            
+            <Route path="soumission" element={<SubmissionPage />} />
+            <Route path="overview" element={<OverviewPage />} />
+            {/* <Route path="vulnerabilites" element={<VulnerabilitiesPage />} /> */}
+            {/* <Route path="corrections" element={<CorrectionsPage />} /> */}
+            {/* <Route path="rapport" element={<ReportPage />} /> */}
+          </Route>
+        )}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
