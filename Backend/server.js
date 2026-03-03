@@ -1,5 +1,7 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import authRoutes from './src/routes/auth.routes.js';
 
 const app = express();
 app.use(cors({
@@ -14,11 +16,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => res.send('Serveur démarré'));
 
-app.use('/auth', _router);
-app.use('/project', _router);
-app.use('/scan', _router);
+app.use('/auth', authRoutes);
+//app.use('/project', _router);
+//app.use('/scan', _router);
 
-app.get('*', (req, res) => res.status(404).send('Not Found'));
+//app.get('*', (req, res) => res.status(404).send('Not Found'));
 
 app.use((err, req, res) => {
   console.error(err.stack);
