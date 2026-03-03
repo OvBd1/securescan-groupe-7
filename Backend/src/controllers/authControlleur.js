@@ -1,4 +1,4 @@
-import { getConnection } from '../config/db.config.js';
+import db from '../config/db.config.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,9 +12,8 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: "Tous les champs sont requis." });
         }
 
-        connection = await getConnection();
         //Check USER 
-        const [existingUsers] = await connection.query('SELECT id FROM users WHERE email = ?', [email]);
+        const [existingUsers] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existingUsers.length > 0) {
             return res.status(400).json({ message: "Cet email est déjà utilisé." });
         }
@@ -22,7 +21,7 @@ export const register = async (req, res) => {
         //Hash MDP BCRYPT
         const passwordHash = await bcrypt.hash(password, 10);
         const userId = uuidv4();
-        await connection.query(
+        await db.query(
             'INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)',
             [userId, email, passwordHash, name]
         );
@@ -33,12 +32,11 @@ export const register = async (req, res) => {
         console.error("Erreur Inscription :", error);
         res.status(500).json({ message: "Erreur serveur lors de l'inscription." });
     } finally {
-        if (connection) await connection.end();
+        if (db) await db.end();
     }
 };
 
 export const login = async (req, res) => {
-    let connection;
     try {
         const { email, password } = req.body;
 
@@ -46,9 +44,8 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: "Email et mot de passe requis." });
         }
 
-        connection = await getConnection();
 
-        const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
+        const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
         if (users.length === 0) {
             return res.status(401).json({ message: "Identifiants incorrects." });
         }
@@ -78,6 +75,6 @@ export const login = async (req, res) => {
         console.error("Erreur Connexion :", error);
         res.status(500).json({ message: "Erreur serveur lors de la connexion." });
     } finally {
-        if (connection) await connection.end();
+        if (db) await db.end();
     }
 };

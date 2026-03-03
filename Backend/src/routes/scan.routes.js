@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllScan, getScanById, createScan, deleteScan} from '../controllers/scan.controller.js';
+import { getAllScan, getScanById, createScan, deleteScan} from '../controllers/scanController.js';
 
 const router = Router();
 
