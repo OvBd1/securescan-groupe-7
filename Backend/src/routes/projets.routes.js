@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllProjects, getProjectById, createProject, deleteProject} from '../controllers/projet.controller.js';
+import { getAllProjects, getProjectById, createProject, deleteProject} from '../controllers/projetController.js';
 
 const router = Router();
 
