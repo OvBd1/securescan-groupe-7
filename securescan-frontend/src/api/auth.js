@@ -1,25 +1,11 @@
-const API_URL = import.meta.env.VITE_API_URL;
+import { api } from "../utils/api";
 
 export const loginUser = async (email, password) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-    });
-    
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Erreur de connexion');
+    const data = await api.post('/auth/login', { email, password });
     return data;
 };
 
 export const registerUser = async (name, email, password) => {
-    const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-    });
-    
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Erreur d\'inscription');
+    const data = await api.post('/auth/register', { name, email, password });
     return data;
 };
