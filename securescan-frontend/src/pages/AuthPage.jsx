@@ -25,13 +25,26 @@ export default function AuthPage() {
         try {
             if (isLogin) {
                 const data = await loginUser(formData.email, formData.password);
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                }
+                if (data.user) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                } 
+                else if (data.id) {
+                    const userObj = { id: data.id, email: data.email, name: data.name };
+                    localStorage.setItem('user', JSON.stringify(userObj));
+                } else {
+                    console.warn("L'objet utilisateur n'a pas été trouvé dans la réponse :", data);
+                    localStorage.setItem('user', JSON.stringify(data)); 
+                }
+
                 window.location.href = '/dashboard';
             } else {
                 await registerUser(formData.name, formData.email, formData.password);
                 alert('Inscription réussie ! Tu peux maintenant te connecter.');
-                setIsLogin(true); n
+                setIsLogin(true);
             }
         } catch (err) {
             setError(err.message);
@@ -167,12 +180,6 @@ export default function AuthPage() {
                         {!loading && <ArrowRight size={18} />}
                     </button>
                 </form>
-
-                <div className="flex items-center my-6">
-                    <div className="flex-1 border-t border-gray-800"></div>
-                    <span className="mx-4 text-xs text-gray-600 uppercase">Ou</span>
-                    <div className="flex-1 border-t border-gray-800"></div>
-                </div>
             </div>
             
             <p className="text-[#4b5563] text-xs mt-8">
