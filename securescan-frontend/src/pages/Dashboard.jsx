@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   Shield, Upload, LayoutDashboard, AlertTriangle, 
-  Wrench, Github, Info, Rocket, FileArchive 
+  Wrench, Github, Info, Rocket, FileArchive,LogOut 
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -11,6 +11,12 @@ export default function Dashboard() {
   const handleScan = (e) => {
     e.preventDefault();
     alert("On va bientôt relier ça au backend pour cloner : " + repoUrl);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
   };
 
   return (
@@ -47,8 +53,17 @@ export default function Dashboard() {
           </nav>
         </div>
 
+        <div className="px-4 mb-2">
+            <button 
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 text-gray-400 hover:text-red-400 hover:bg-red-400/10 px-4 py-3 rounded-xl transition duration-200">
+                <LogOut size={18} />
+                <span className="font-medium text-sm">Déconnexion</span>
+            </button>
+        </div>
+
         <div className="p-6 text-xs text-gray-500">
-          <p>Hackathon CyberSécurité</p>
+          <p>Hackathon</p>
           <p>v1.0.0 - MVP</p>
         </div>
       </aside>
