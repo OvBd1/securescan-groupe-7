@@ -22,6 +22,8 @@ export const getProjectById = async (req, res) => {
 };
 
 export const createProject = async (req, res) => {
+  let scanId = null;
+
   try {
     const { url, userId } = req.body;
 
@@ -30,25 +32,63 @@ export const createProject = async (req, res) => {
     }
 
     const projectId = uuidv4();
-    const projectName = url.split('/').pop();
+    scanId = uuidv4(); 
+    const projectName = url.split('/').pop().replace('.git', '');
 
-    const [result] = await db.query(
-      'INSERT INTO projets (id, user_id, name, type, source_path, global_score, scan_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [projectId, userId, projectName, 'GIT_REPO', url, 0, new Date()]
+    await db.query(
+      'INSERT INTO projets (id, user_id, name, type, source_path) VALUES (?, ?, ?, ?, ?)',
+      [projectId, userId, projectName, 'GIT_REPO', url]
     );
 
-    console.log('Projet créé avec ID:', projectId);
+    await db.query(
+      'INSERT INTO scans (id, projet_id, status, started_at) VALUES (?, ?, ?, ?)',
+      [scanId, projectId, 'RUNNING', new Date()]
+    );
 
-    // Lancer l'analyse 
-    await analyzeRepo(url, projectId, userId);
+    console.log(`⏳ Projet ${projectName} créé. Lancement du Scan ID: ${scanId}...`);
+    const parsedData = await analyzeRepo(url, projectId, userId);
+    await db.query(
+      'UPDATE scans SET status = ?, global_score = ?, finished_at = ? WHERE id = ?',
+      ['COMPLETED', parsedData.projet.global_score, new Date(), scanId]
+    );
+
+    if (parsedData.vulnerabilities && parsedData.vulnerabilities.length > 0) {
+      const values = parsedData.vulnerabilities.map(v => [
+        v.id, 
+        scanId,             
+        v.owasp_id || null, 
+        v.outil, 
+        v.check_id, 
+        v.path, 
+        v.line, 
+        v.severity, 
+        v.message, 
+        JSON.stringify(v.code_snippet), 
+        v.is_fixed || 0
+      ]);
+
+      await db.query(
+        'INSERT INTO vulnerabilities (id, scan_id, owasp_id, outil, check_id, path, line, severity, message, code_snippet, is_fixed) VALUES ?',
+        [values]
+      );
+    }
+
+    console.log(`✅ Scan terminé ! ${parsedData.stats.total} vulnérabilités trouvées.`);
 
     res.status(201).json({ 
-      message: 'Projet créé avec succès', 
-      project: { id: projectId, name: projectName, url } 
+      message: 'Analyse terminée avec succès', 
+      project: parsedData.projet,
+      stats: parsedData.stats
     });
+
   } catch (error) {
-    console.error('Erreur lors de la création du projet:', error);
-    res.status(500).json({ message: 'Erreur lors de la création du projet', error: error.message });
+    console.error('❌ Erreur lors de la création du projet:', error);
+  
+    if (scanId) {
+      await db.query('UPDATE scans SET status = ?, finished_at = ? WHERE id = ?', ['FAILED', new Date(), scanId]).catch(console.error);
+    }
+
+    res.status(500).json({ message: 'Erreur lors de l\'analyse', error: error.message });
   }
 };
 

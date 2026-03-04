@@ -5,7 +5,7 @@ const router = Router();
 
 router.get('/', getAllProjects);
 router.get('/:id', getProjectById);
-router.post('', createProject);
+router.post('/', createProject);
 router.delete('/:id', deleteProject);
 
 export default router;
