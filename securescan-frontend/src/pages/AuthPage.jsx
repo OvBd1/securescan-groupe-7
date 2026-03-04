@@ -16,8 +16,14 @@ export default function AuthPage() {
         e.preventDefault();
         setError('');
 
-        if (!isLogin && formData.password !== formData.confirmPassword) {
-            return setError('Les mots de passe ne correspondent pas.');
+        if (!isLogin) {
+            if (formData.password.length < 12) {
+                return setError('Le mot de passe doit contenir au minimum 12 caractères.');
+            }
+
+            if (formData.password !== formData.confirmPassword) {
+                return setError('Les mots de passe ne correspondent pas.');
+            }
         }
 
         setLoading(true);
@@ -145,7 +151,7 @@ export default function AuthPage() {
                                 className="w-full bg-[#1a2133] border border-gray-700/50 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                             />
                         </div>
-                        {!isLogin && <p className="text-[11px] text-gray-500 mt-1.5">Minimum 8 caractères</p>}
+                        {!isLogin && <p className="text-[11px] text-gray-500 mt-1.5">Minimum 12 caractères (Recommandation ANSSI)</p>}
                     </div>
 
                     {!isLogin && (
