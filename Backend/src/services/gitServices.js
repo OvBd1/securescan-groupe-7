@@ -4,29 +4,19 @@ import { rm, mkdir } from 'fs/promises';
 import { writeFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { parseResults } from './parserService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const git = simpleGit();
 
-export const analyzeRepo = async (repoPath) => {
-  console.log('Analyzing repo:', repoPath);
-
+export const analyzeRepo = async (repoPath, projectId, userId) => {
   const tempDir = path.join(__dirname, '/../storage/temp-repos');
-  console.log('tempDir', tempDir);
-
   const repoId = Date.now();
-  console.log('repoId', repoId);
-
   const clonedRepoDir = path.join(tempDir, `r-${repoId}`);
-  console.log('clonedRepoDir', clonedRepoDir);
-
   const resultsDir = path.join(__dirname, '/../storage/uploads');
-  console.log('resultsDir', resultsDir);
-
   const resultsFile = path.join(resultsDir, `scan-results-${repoId}.json`);
-  console.log('resultsFile', resultsFile);
 
   try {
     // Créer les répertoires s'ils n'existent pas
@@ -62,7 +52,10 @@ export const analyzeRepo = async (repoPath) => {
       });
     });
 
-    return resultsFile;
+    // Parser les résultats et retourner les données structurées
+    const parsedData = await parseResults(resultsFile, projectId, userId);
+    console.log(parsedData);
+    return parsedData;
   } catch (error) {
     console.error('Erreur lors de l\'analyse du repo:', error);
     throw error;
