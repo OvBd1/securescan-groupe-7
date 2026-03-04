@@ -92,7 +92,7 @@ export const createProject = async (req, res) => {
     );
 
     console.log(`⏳ Projet ${projectName} créé. Lancement du Scan ID: ${scanId}...`);
-    const parsedData = await analyzeRepo(url, projectId, userId);
+    const parsedData = await analyzeRepo(url, projectId, projectName, userId);
     await db.query(
       'UPDATE scans SET status = ?, global_score = ?, finished_at = ? WHERE id = ?',
       ['COMPLETED', parsedData.projet.global_score, new Date(), scanId]

@@ -46,7 +46,7 @@ const mapOwaspReferences = async (owaspReferences) => {
   return owaspId;
 };
 
-export const parseResults = async (filePath, projectId, userId) => {
+export const parseResults = async (filePath, projectId, projectName, userId) => {
   try {
     const fileContent = await readFile(filePath, 'utf-8');
     const scanResults = JSON.parse(fileContent);
@@ -100,6 +100,7 @@ export const parseResults = async (filePath, projectId, userId) => {
     return {
       projet: {
         id: projectId,
+        name: projectName,
         user_id: userId,
         global_score: globalScore,
         scan_at: new Date()
