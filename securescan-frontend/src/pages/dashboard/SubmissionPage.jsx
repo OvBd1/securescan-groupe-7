@@ -1,21 +1,43 @@
 // src/pages/dashboard/SubmissionPage.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Github, FileArchive, Rocket } from 'lucide-react';
+import { Upload, Github, FileArchive, Rocket, Loader2 } from 'lucide-react';
+import { createProjectScan } from '../../api/projects.js';
 
 export default function SubmissionPage() {
   const [activeTab, setActiveTab] = useState('git');
   const [repoUrl, setRepoUrl] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
   const navigate = useNavigate();
 
-  const handleScan = (e) => {
+  const handleScan = async (e) => {
     e.preventDefault();
-    // Plus tard : appel API backend ici
-    navigate('/dashboard/overview'); // Redirection vers le dashboard après scan
+    setIsScanning(true);
+
+    try {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) {
+        throw new Error("Utilisateur non connecté. Veuillez vous reconnecter.");
+      }
+      const user = JSON.parse(userStr);
+      const response = await createProjectScan(repoUrl, user.id);
+
+      console.log("Analyse réussie :", response);
+      alert(`Analyse terminée avec succès ! Score de sécurité : ${response.project?.global_score || 0}/100`);
+      localStorage.setItem('currentProjectId', response.project.id);
+      navigate(`/dashboard/scan/${response.project.id}`);
+
+    } catch (error) {
+      console.error("Erreur lors du scan :", error);
+      alert(error.message || "Une erreur est survenue lors du clonage ou de l'analyse.");
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto w-full">
+    <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto w-full animate-fade-in">
+      
       <div className="text-center mb-10">
         <div className="bg-cyan-400/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(34,211,238,0.2)]">
           <Upload size={32} className="text-cyan-400" />
@@ -25,12 +47,11 @@ export default function SubmissionPage() {
       </div>
 
       <div className="bg-[#111623] border border-gray-800 rounded-2xl w-full p-8 shadow-2xl">
-        {/* Tes boutons d'onglets (Git / Zip) ... */}
         <div className="flex bg-[#0b0f19] rounded-lg p-1 mb-6 border border-gray-800">
-          <button onClick={() => setActiveTab('git')} className={`flex-1 py-2.5 rounded-md text-sm font-medium transition flex items-center justify-center gap-2 ${activeTab === 'git' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>
+          <button onClick={() => setActiveTab('git')} className={`flex-1 py-2.5 rounded-md text-sm font-medium transition flex items-center justify-center gap-2 ${activeTab === 'git' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}>
             <Github size={16} /> Repository Git
           </button>
-          <button onClick={() => setActiveTab('zip')} className={`flex-1 py-2.5 rounded-md text-sm font-medium transition flex items-center justify-center gap-2 ${activeTab === 'zip' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>
+          <button onClick={() => setActiveTab('zip')} className={`flex-1 py-2.5 rounded-md text-sm font-medium transition flex items-center justify-center gap-2 ${activeTab === 'zip' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}>
             <FileArchive size={16} /> Archive ZIP
           </button>
         </div>
@@ -41,12 +62,35 @@ export default function SubmissionPage() {
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Github size={18} className="text-gray-500" />
             </div>
-            <input type="url" required value={repoUrl} onChange={(e) => setRepoUrl(e.target.value)} placeholder="https://github.com/username/repository" className="w-full bg-[#0b0f19] border border-gray-700 rounded-lg py-3 pl-10 pr-4 text-white focus:border-blue-500 transition" />
+            <input 
+              type="url" 
+              required 
+              value={repoUrl} 
+              onChange={(e) => setRepoUrl(e.target.value)} 
+              placeholder="https://github.com/username/repository" 
+              disabled={isScanning}
+              className="w-full bg-[#0b0f19] border border-gray-700 rounded-lg py-3 pl-10 pr-4 text-white focus:border-blue-500 transition disabled:opacity-50" 
+            />
           </div>
-          <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3.5 rounded-lg flex items-center justify-center gap-2 transition duration-200">
-            <Rocket size={18} /> Lancer l'Analyse
+
+          <button 
+            type="submit" 
+            disabled={isScanning}
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3.5 rounded-lg flex items-center justify-center gap-2 transition duration-200 shadow-[0_0_15px_rgba(37,99,235,0.4)] disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isScanning ? (
+              <>
+                <Loader2 size={18} className="animate-spin" /> 
+                Analyse en cours (peut prendre 1 à 2 min)...
+              </>
+            ) : (
+              <>
+                <Rocket size={18} /> Lancer l'Analyse
+              </>
+            )}
           </button>
         </form>
+
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import authRoutes from './src/routes/auth.routes.js';
+import projetsRoutes from './src/routes/projets.routes.js';
 
 const app = express();
 app.use(cors({
@@ -17,12 +18,12 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => res.send('Serveur démarré'));
 
 app.use('/auth', authRoutes);
-//app.use('/project', _router);
+app.use('/project', projetsRoutes);
 //app.use('/scan', _router);
 
 //app.get('*', (req, res) => res.status(404).send('Not Found'));
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Internal Server Error');
 });

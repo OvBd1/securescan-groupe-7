@@ -3,6 +3,7 @@ import AuthPage from './pages/AuthPage';
 import DashboardLayout from './layouts/DashboardLayout';
 import SubmissionPage from './pages/dashboard/SubmissionPage';
 import OverviewPage from './pages/dashboard/OverviewPage';
+import ScanDetailsPage from './pages/dashboard/ScanDetailsPage';
 // import VulnerabilitiesPage from './pages/dashboard/VulnerabilitiesPage';
 // import CorrectionsPage from './pages/dashboard/CorrectionsPage';
 // import ReportPage from './pages/dashboard/ReportPage';
@@ -22,6 +23,7 @@ export default function App() {
             
             <Route path="soumission" element={<SubmissionPage />} />
             <Route path="overview" element={<OverviewPage />} />
+            <Route path="scan/:id" element={<ScanDetailsPage />} />
             {/* <Route path="vulnerabilites" element={<VulnerabilitiesPage />} /> */}
             {/* <Route path="corrections" element={<CorrectionsPage />} /> */}
             {/* <Route path="rapport" element={<ReportPage />} /> */}
