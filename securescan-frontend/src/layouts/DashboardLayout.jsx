@@ -8,7 +8,7 @@ export default function DashboardLayout() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/login');
+    window.location.href = '/login';
   };
 
   const isActive = (path) => location.pathname.includes(path);

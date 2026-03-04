@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
 export const register = async (req, res) => {
-    let connection;
     try {
         const { email, password, name } = req.body;
 
@@ -12,13 +11,11 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: "Tous les champs sont requis." });
         }
 
-        //Check USER 
         const [existingUsers] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existingUsers.length > 0) {
             return res.status(400).json({ message: "Cet email est déjà utilisé." });
         }
 
-        //Hash MDP BCRYPT
         const passwordHash = await bcrypt.hash(password, 10);
         const userId = uuidv4();
         await db.query(
@@ -31,8 +28,6 @@ export const register = async (req, res) => {
     } catch (error) {
         console.error("Erreur Inscription :", error);
         res.status(500).json({ message: "Erreur serveur lors de l'inscription." });
-    } finally {
-        if (db) await db.end();
     }
 };
 
@@ -44,21 +39,17 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: "Email et mot de passe requis." });
         }
 
-
         const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
         if (users.length === 0) {
             return res.status(401).json({ message: "Identifiants incorrects." });
         }
 
         const user = users[0];
-
-        //Check MDP
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
             return res.status(401).json({ message: "Identifiants incorrects." });
         }
 
-        //Token 
         const token = jwt.sign(
             { id: user.id, email: user.email },
             process.env.JWT_SECRET || 'secret_hackathon_ipssi_2026',
@@ -74,7 +65,5 @@ export const login = async (req, res) => {
     } catch (error) {
         console.error("Erreur Connexion :", error);
         res.status(500).json({ message: "Erreur serveur lors de la connexion." });
-    } finally {
-        if (db) await db.end();
     }
 };
