@@ -98,8 +98,14 @@ export default function ScanDetailsPage() {
             </div>
             <span className="text-5xl font-bold text-white">{totalVulns}</span>
           </div>
+            <button 
+                onClick={() => navigate(`/dashboard/scan/${id}/vulnerabilities`)}
+                className="mt-auto w-full bg-[#161d2d] hover:bg-blue-600 border border-gray-800 hover:border-blue-500 text-white py-2 rounded-lg text-sm font-bold transition flex justify-center items-center gap-2"
+            >
+                Voir le détail
+            </button>
         </div>
-      </div>
+    </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-[#111623] border border-gray-800 p-6 rounded-xl shadow-lg flex flex-col justify-center items-center">
