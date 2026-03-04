@@ -11,6 +11,10 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: "Tous les champs sont requis." });
         }
 
+        if (password.length < 12) {
+            return res.status(400).json({ message: "Le mot de passe doit contenir au moins 12 caractères." });
+        }
+
         const [existingUsers] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existingUsers.length > 0) {
             return res.status(400).json({ message: "Cet email est déjà utilisé." });
