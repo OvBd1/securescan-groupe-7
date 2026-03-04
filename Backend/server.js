@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './src/routes/auth.routes.js';
 import projetsRoutes from './src/routes/projets.routes.js';
+import owaspRoutes from './src/routes/owasp.routes.js';
 
 const app = express();
 app.use(cors({
@@ -19,6 +20,7 @@ app.get('/', (req, res) => res.send('Serveur démarré'));
 
 app.use('/auth', authRoutes);
 app.use('/project', projetsRoutes);
+app.use('/owasp', owaspRoutes);
 //app.use('/scan', _router);
 
 //app.get('*', (req, res) => res.status(404).send('Not Found'));

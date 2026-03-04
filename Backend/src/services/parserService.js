@@ -2,15 +2,52 @@ import { readFile } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../config/db.config.js';
 
+/**
+ * Extrait le nom OWASP d'une chaîne de référence
+ * Exemple: "A05:2025 - Injection" -> "Injection"
+ */
+const extractOwaspName = (owaspReference) => {
+  const match = owaspReference.match(/\s-\s(.+)$/);
+  return match ? match[1].trim() : null;
+};
+
+/**
+ * Récupère l'ID OWASP en fonction du nom de la vulnérabilité
+ */
+const getOwaspIdByName = async (owaspName) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT id FROM owasp WHERE name = ?',
+      [owaspName]
+    );
+    return rows.length > 0 ? rows[0].id : null;
+  } catch (error) {
+    console.error(`Erreur lors de la recherche OWASP pour ${owaspName}:`, error);
+    return null;
+  }
+};
+
+/**
+ * Mappe les références OWASP du scan aux IDs de la base de données
+ */
+const mapOwaspReferences = async (owaspReferences) => {
+  if (!owaspReferences || !Array.isArray(owaspReferences) || owaspReferences.length === 0) {
+    return null;
+  }
+
+  // Utiliser la référence OWASP 2025 de préférence
+  const owasp2025 = owaspReferences.find(ref => ref.includes('2025'));
+  const selectedRef = owasp2025 || owaspReferences[0];
+  
+  const owaspName = extractOwaspName(selectedRef);
+  if (!owaspName) return null;
+
+  const owaspId = await getOwaspIdByName(owaspName);
+  return owaspId;
+};
+
 export const parseResults = async (filePath, projectId, userId) => {
   try {
-    // const [existingOwasp] = await db.query('SELECT * FROM owasp');
-    // if (existingOwasp.length === 0) {
-    //   return {};
-    // }
-
-    // console.log(existingOwasp);
-
     const fileContent = await readFile(filePath, 'utf-8');
     const scanResults = JSON.parse(fileContent);
 
@@ -36,16 +73,20 @@ export const parseResults = async (filePath, projectId, userId) => {
         else if (severity === 'MEDIUM') mediumCount++;
         else lowCount++;
 
+        // Mapper les références OWASP
+        const owaspReferences = result.extra?.metadata?.owasp || [];
+        const owaspId = await mapOwaspReferences(owaspReferences);
+
         vulnerabilities.push({
           id: uuidv4(),
           projet_id: projectId,
-          owasp_id: null, // À mapper manuellement après si nécessaire
+          owasp_id: owaspId,
           outil: 'semgrep',
           check_id: result.check_id,
           path: result.path,
           line: result.start?.line || 0,
           severity,
-          message: result.message,
+          message: result.extra?.message || result.check_id,
           code_snippet: result.extra?.lines || null,
           is_fixed: 0
         });
