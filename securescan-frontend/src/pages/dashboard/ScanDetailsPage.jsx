@@ -28,8 +28,7 @@ export default function ScanDetailsPage() {
   
   const scan = data.scan;
   const vulns = data.vulnerabilities || [];
-  
-  const counts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, INFO: 0 };
+  const counts = { HIGH: 0, MEDIUM: 0, LOW: 0, INFO: 0 };
   vulns.forEach(v => { if (counts[v.severity] !== undefined) counts[v.severity]++; });
   
   const totalVulns = vulns.length;
@@ -58,7 +57,7 @@ export default function ScanDetailsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-[#111623] border border-gray-800 p-6 rounded-xl shadow-lg">
           <p className="text-gray-400 text-sm mb-2">Score de Sécurité</p>
           <div className="flex items-end gap-2">
@@ -71,16 +70,6 @@ export default function ScanDetailsPage() {
         </div>
 
         <div className="bg-[#111623] border border-gray-800 p-6 rounded-xl shadow-lg">
-          <p className="text-gray-400 text-sm mb-4">Vulnérabilités Critiques</p>
-          <div className="flex items-center gap-4">
-            <div className="bg-red-500/10 p-3 rounded-lg border border-red-500/20">
-              <AlertTriangle size={28} className="text-red-500" />
-            </div>
-            <span className="text-5xl font-bold text-white">{counts.CRITICAL}</span>
-          </div>
-        </div>
-
-        <div className="bg-[#111623] border border-gray-800 p-6 rounded-xl shadow-lg">
           <p className="text-gray-400 text-sm mb-4">Vulnérabilités Hautes</p>
           <div className="flex items-center gap-4">
             <div className="bg-orange-500/10 p-3 rounded-lg border border-orange-500/20">
@@ -90,32 +79,28 @@ export default function ScanDetailsPage() {
           </div>
         </div>
 
-        <div className="bg-[#111623] border border-gray-800 p-6 rounded-xl shadow-lg">
+        <div className="bg-[#111623] border border-gray-800 p-6 rounded-xl shadow-lg flex flex-col">
           <p className="text-gray-400 text-sm mb-4">Total Vulnérabilités</p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 mb-4">
             <div className="bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
               <Shield size={28} className="text-blue-500" />
             </div>
             <span className="text-5xl font-bold text-white">{totalVulns}</span>
           </div>
-            <button 
-                onClick={() => navigate(`/dashboard/scan/${id}/vulnerabilities`)}
-                className="mt-auto w-full bg-[#161d2d] hover:bg-blue-600 border border-gray-800 hover:border-blue-500 text-white py-2 rounded-lg text-sm font-bold transition flex justify-center items-center gap-2"
-            >
-                Voir le détail
-            </button>
+          <button 
+              onClick={() => navigate(`/dashboard/scan/${id}/vulnerabilities`)}
+              className="mt-auto w-full bg-[#161d2d] hover:bg-blue-600 border border-gray-800 hover:border-blue-500 text-white py-2 rounded-lg text-sm font-bold transition flex justify-center items-center gap-2"
+          >
+              Voir le détail
+          </button>
         </div>
-    </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-[#111623] border border-gray-800 p-6 rounded-xl shadow-lg flex flex-col justify-center items-center">
           <h3 className="text-lg font-bold text-white mb-6 w-full text-left">Répartition par Sévérité</h3>
           
           <div className="w-full space-y-4">
-             <div className="flex justify-between items-center bg-[#161d2d] p-3 rounded-lg border border-red-500/20">
-                <span className="text-red-500 font-bold flex items-center gap-2"><AlertTriangle size={16}/> Critique</span>
-                <span className="text-white font-bold">{counts.CRITICAL}</span>
-             </div>
              <div className="flex justify-between items-center bg-[#161d2d] p-3 rounded-lg border border-orange-500/20">
                 <span className="text-orange-500 font-bold flex items-center gap-2"><AlertTriangle size={16}/> Haute</span>
                 <span className="text-white font-bold">{counts.HIGH}</span>

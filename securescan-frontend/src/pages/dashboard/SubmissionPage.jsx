@@ -1,4 +1,3 @@
-// src/pages/dashboard/SubmissionPage.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Github, FileArchive, Rocket, Loader2 } from 'lucide-react';
