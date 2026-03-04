@@ -20,17 +20,15 @@ export default function SubmissionPage() {
         throw new Error("Utilisateur non connecté. Veuillez vous reconnecter.");
       }
       const user = JSON.parse(userStr);
-
-      console.log("🚀 Envoi de l'URL au backend :", repoUrl);
-
       const response = await createProjectScan(repoUrl, user.id);
 
-      console.log("✅ Analyse réussie :", response);
+      console.log("Analyse réussie :", response);
       alert(`Analyse terminée avec succès ! Score de sécurité : ${response.project?.global_score || 0}/100`);
-      navigate('/dashboard/overview');
+      localStorage.setItem('currentProjectId', response.project.id);
+      navigate(`/dashboard/scan/${response.project.id}`);
 
     } catch (error) {
-      console.error("❌ Erreur lors du scan :", error);
+      console.error("Erreur lors du scan :", error);
       alert(error.message || "Une erreur est survenue lors du clonage ou de l'analyse.");
     } finally {
       setIsScanning(false);

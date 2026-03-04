@@ -4,10 +4,27 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const getAllProjects = async (req, res) => {
   try {
-    // Logique pour récupérer tous les projets
-    res.status(200).json({ message: 'Tous les projets récupérés avec succès' });
+    const { userId } = req.query; 
+
+    if (!userId) return res.status(400).json({ message: "userId manquant" });
+
+    const [projects] = await db.query(
+      `SELECT p.id, p.name, p.source_path, s.global_score, s.status, s.started_at,
+              COUNT(v.id) as total_vulns,
+              SUM(CASE WHEN v.severity = 'CRITICAL' THEN 1 ELSE 0 END) as critical_vulns
+       FROM projets p
+       LEFT JOIN scans s ON p.id = s.projet_id
+       LEFT JOIN vulnerabilities v ON s.id = v.scan_id
+       WHERE p.user_id = ?
+       GROUP BY p.id, s.id
+       ORDER BY s.started_at DESC`,
+      [userId]
+    );
+
+    res.status(200).json(projects);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la récupération des projets', error });
+    console.error('Erreur getAllProjects:', error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
@@ -18,6 +35,35 @@ export const getProjectById = async (req, res) => {
     res.status(200).json({ message: `Projet avec ID ${id} récupéré avec succès` });
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la récupération du projet', error });
+  }
+};
+
+export const getProjectDashboard = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [scans] = await db.query(
+      `SELECT p.name, p.source_path, s.id as scan_id, s.global_score, s.started_at, s.status 
+       FROM projets p 
+       JOIN scans s ON p.id = s.projet_id 
+       WHERE p.id = ? 
+       ORDER BY s.started_at DESC LIMIT 1`,
+      [id]
+    );
+
+    if (scans.length === 0) {
+      return res.status(404).json({ message: "Aucun scan trouvé pour ce projet" });
+    }
+    const scan = scans[0];
+    const [vulnerabilities] = await db.query(
+      `SELECT severity, owasp_id, outil FROM vulnerabilities WHERE scan_id = ?`,
+      [scan.scan_id]
+    );
+
+    res.status(200).json({ scan, vulnerabilities });
+  } catch (error) {
+    console.error('Erreur getProjectDashboard:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -95,9 +141,10 @@ export const createProject = async (req, res) => {
 export const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
-    // Logique pour supprimer un projet par ID
-    res.status(200).json({ message: `Projet avec ID ${id} supprimé avec succès` });
+    await db.query('DELETE FROM projets WHERE id = ?', [id]);
+    res.status(200).json({ message: `Projet ${id} supprimé avec succès` });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la suppression du projet', error });
+    console.error('Erreur deleteProject:', error);
+    res.status(500).json({ message: "Erreur lors de la suppression", error: error.message });
   }
 };

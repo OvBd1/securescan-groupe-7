@@ -7,5 +7,14 @@ export const createProjectScan = (url, userId) => {
     return api.post('/project', { url, userId });
 };
 
-// export const getProjectById = (id) => api.get(`/project/${id}`);
-// export const getAllProjects = () => api.get('/project');
+export const getProjectDashboardData = (projectId) => {
+    return api.get(`/project/${projectId}/dashboard`);
+};
+
+export const getUserProjects = (userId) => {
+    return api.get(`/project?userId=${userId}`);
+};
+
+export const deleteProjectScan = (projectId) => {
+    return api.delete(`/project/${projectId}`);
+};
