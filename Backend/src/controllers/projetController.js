@@ -56,7 +56,7 @@ export const getProjectDashboard = async (req, res) => {
     }
     const scan = scans[0];
     const [vulnerabilities] = await db.query(
-      `SELECT severity, owasp_id, outil FROM vulnerabilities WHERE scan_id = ?`,
+      `SELECT * FROM vulnerabilities WHERE scan_id = ?`,
       [scan.scan_id]
     );
 
