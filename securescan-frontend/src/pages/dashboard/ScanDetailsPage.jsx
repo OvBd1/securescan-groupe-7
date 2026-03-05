@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, AlertTriangle, Shield, Loader2, ArrowLeft, Download } from 'lucide-react';
 import { getProjectDashboardData } from '../../api/projects';
+import { api } from '../../utils/api';
 
 export default function ScanDetailsPage() {
   const { id } = useParams();
@@ -41,8 +42,35 @@ export default function ScanDetailsPage() {
   if (score < 50) { grade = 'D'; gradeColor = 'text-orange-500 bg-orange-500/20'; }
   if (score < 30) { grade = 'F'; gradeColor = 'text-red-500 bg-red-500/20'; }
 
-  const handleDownloadPDF = () => {
-    window.open(`http://localhost:3001/project/${id}/export-pdf`, '_blank');
+  const handleDownloadPDF = async () => {
+    try {
+      console.log("Déclenchement du téléchargement PDF...");
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/project/${id}/export-pdf`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur du serveur: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Rapport_SecureScan_${data?.project?.name || 'rapport'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      console.log("PDF téléchargé avec succès !");
+    } catch (error) {
+      console.error("Erreur lors du téléchargement du PDF :", error);
+      alert("Erreur lors du téléchargement du PDF. Veuillez réessayer.");
+    }
   };
 
   return (

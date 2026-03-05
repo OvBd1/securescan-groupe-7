@@ -171,8 +171,6 @@ export const downloadProjectPdf = async (req, res) => {
       [scan.scan_id]
     );
 
-    console.log("Check IDs depuis la BDD :", vulnerabilities.map(v => v.check_id));
-
     const scanData = {
       projet: { name: scan.name, scan_at: scan.started_at },
       vulnerabilities: vulnerabilities,
