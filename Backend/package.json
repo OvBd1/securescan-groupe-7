@@ -1,0 +1,27 @@
+{
+  "name": "securescan-backend",
+  "version": "1.0.0",
+  "description": "Backend pour SecureScan - Hackathon IPSSI 2026",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "jspdf": "^4.2.0",
+    "multer": "^2.1.1",
+    "mysql2": "^3.18.2",
+    "simple-git": "^3.32.3",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
