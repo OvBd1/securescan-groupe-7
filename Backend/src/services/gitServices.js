@@ -62,6 +62,8 @@ export const analyzeRepo = async (repoPath, projectId, projectName, userId) => {
   } finally {
     // Supprimer seulement le dossier cloné
     await rm(clonedRepoDir, { recursive: true, force: true });
+    await rm(resultsFile, { force: true });
+    await rm(path.join(resultsDir, `security-report-${repoId}.pdf`), { force: true });
     console.log('Nettoyage du repo cloné terminé.');
   }
 };
@@ -121,7 +123,9 @@ export const analyzeZIP = async (zipFilePath, projectId, projectName, userId) =>
   } finally {
     // Supprimer seulement le dossier ZIP et dézip
     await rm(extractDir, { recursive: true, force: true });
-    await rm(zipFilePath, {force: true }).catch(() => {})
+    await rm(zipFilePath, { force: true });
+    await rm(resultsFile, { force: true });
+    await rm(path.join(resultsDir, `security-report-${repoId}.pdf`), { force: true });
     console.log('Nettoyage des fichiers ZIP terminé.');
   }
 };
