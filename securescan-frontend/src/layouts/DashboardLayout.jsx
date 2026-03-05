@@ -33,12 +33,6 @@ export default function DashboardLayout() {
             <Link to="/dashboard/overview" className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${isActive('overview') ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-[#161d2d]'}`}>
               <LayoutDashboard size={18} /> <span className="font-medium">Dashboard</span>
             </Link>
-            <Link to="/dashboard/corrections" className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${isActive('corrections') ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-[#161d2d]'}`}>
-              <Wrench size={18} /> <span className="font-medium">Corrections</span>
-            </Link>
-            <Link to="/dashboard/rapport" className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${isActive('rapport') ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-[#161d2d]'}`}>
-              <FileText size={18} /> <span className="font-medium">Rapport & Git</span>
-            </Link>
           </nav>
         </div>
 
