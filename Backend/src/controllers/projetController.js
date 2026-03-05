@@ -1,6 +1,7 @@
 import { analyzeRepo } from '../services/gitServices.js';
 import db from '../config/db.config.js';
 import { v4 as uuidv4 } from 'uuid';
+import { generateSecurityReport } from '../services/pdfService.js';
 
 export const getAllProjects = async (req, res) => {
   try {
@@ -146,5 +147,47 @@ export const deleteProject = async (req, res) => {
   } catch (error) {
     console.error('Erreur deleteProject:', error);
     res.status(500).json({ message: "Erreur lors de la suppression", error: error.message });
+  }
+};
+
+export const downloadProjectPdf = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [scans] = await db.query(
+      `SELECT p.name, p.source_path, s.id as scan_id, s.global_score, s.started_at, s.status 
+       FROM projets p 
+       JOIN scans s ON p.id = s.projet_id 
+       WHERE p.id = ? 
+       ORDER BY s.started_at DESC LIMIT 1`,
+      [id]
+    );
+
+    if (scans.length === 0) {
+      return res.status(404).json({ message: "Aucun scan trouvé pour ce projet" });
+    }
+    const scan = scans[0];
+    const [vulnerabilities] = await db.query(
+      `SELECT * FROM vulnerabilities WHERE scan_id = ?`,
+      [scan.scan_id]
+    );
+
+    console.log("Check IDs depuis la BDD :", vulnerabilities.map(v => v.check_id));
+
+    const scanData = {
+      projet: { name: scan.name, scan_at: scan.started_at },
+      vulnerabilities: vulnerabilities,
+      stats: {}
+    };
+
+    const doc = generateSecurityReport(scanData);
+    const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="Rapport_SecureScan_${scan.name}.pdf"`);
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('Erreur génération PDF:', error);
+    res.status(500).json({ error: error.message });
   }
 };

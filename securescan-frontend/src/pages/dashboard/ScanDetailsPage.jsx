@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, AlertTriangle, Shield, Loader2, ArrowLeft } from 'lucide-react';
+import { Clock, AlertTriangle, Shield, Loader2, ArrowLeft, Download } from 'lucide-react';
 import { getProjectDashboardData } from '../../api/projects';
 
 export default function ScanDetailsPage() {
@@ -41,6 +41,10 @@ export default function ScanDetailsPage() {
   if (score < 50) { grade = 'D'; gradeColor = 'text-orange-500 bg-orange-500/20'; }
   if (score < 30) { grade = 'F'; gradeColor = 'text-red-500 bg-red-500/20'; }
 
+  const handleDownloadPDF = () => {
+    window.open(`http://localhost:3001/project/${id}/export-pdf`, '_blank');
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 animate-fade-in">
       <button onClick={() => navigate('/dashboard/overview')} className="flex items-center gap-2 text-gray-400 hover:text-white transition text-sm mb-4">
@@ -52,8 +56,18 @@ export default function ScanDetailsPage() {
           <h2 className="text-3xl font-bold text-white mb-1">Détails du Scan</h2>
           <p className="text-gray-400 text-sm">Analyse de sécurité - {scan.source_path}</p>
         </div>
-        <div className="text-xs text-gray-400 flex items-center gap-2 bg-[#111623] px-3 py-1.5 rounded-lg border border-gray-800">
-          <Clock size={14} /> {new Date(scan.started_at).toLocaleString('fr-FR')}
+        
+        <div className="flex items-center gap-3">
+          <div className="text-xs text-gray-400 flex items-center gap-2 bg-[#111623] px-3 py-2 rounded-lg border border-gray-800">
+            <Clock size={14} /> {new Date(scan.started_at).toLocaleString('fr-FR')}
+          </div>
+          
+          <button 
+            onClick={handleDownloadPDF} 
+            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition text-sm shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+          >
+            <Download size={16} /> Exporter en PDF
+          </button>
         </div>
       </div>
 

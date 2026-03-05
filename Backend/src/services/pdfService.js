@@ -82,7 +82,7 @@ app.get('/api/users/search', async (req, res) => {
   res.json(users);
 });
 // Exemple d'attaque: /api/users/search?q=' OR '1'='1`;
-  } else if (checkId.includes('detected-replaceall-sanitization')) {
+  } else if (checkId.includes('detect-replaceall-sanitization')) {
     return `// XSS via sanitization insuffisante
 const userDescription = req.body.desc;
 const sanitized = userDescription
@@ -104,7 +104,7 @@ function displayUserData(userData) {
 }
 // Si userData vient du serveur: XSS direct
 // Attaque: userData.bio = "<script>steal()</script>"`;
-  } else if (checkId.includes('detected-jwt-token')) {
+  } else if (checkId.includes('detect-jwt-token')) {
     return `// Configuration JWT - Secret hardcodé
 const jwtConfig = {
   secret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
@@ -120,7 +120,7 @@ function generateToken(user) {
   return jwt.sign(payload, jwtConfig.secret);
 }
 // Secret visible dans le code source`;
-  } else if (checkId.includes('detected-generic-secret')) {
+  } else if (checkId.includes('detect-generic-secret')) {
     return `// Secrets exposés dans le code
 module.exports = {
   database: {
@@ -341,7 +341,7 @@ app.get('/search', (req, res) => {
     }
   }).then(users => res.json(users));
 });`;
-  } else if (checkId.includes('detected-replaceall-sanitization')) {
+  } else if (checkId.includes('detect-replaceall-sanitization')) {
     return `import DOMPurify from 'dompurify';
 const sanitized = DOMPurify.sanitize(userInput);
 document.getElementById('output').innerHTML = sanitized;`;
@@ -349,11 +349,11 @@ document.getElementById('output').innerHTML = sanitized;`;
     return `const userInput = req.body.input;
 // Utiliser textContent au lieu de innerHTML
 document.getElementById('target').textContent = userInput;`;
-  } else if (checkId.includes('detected-jwt-token')) {
+  } else if (checkId.includes('detect-jwt-token')) {
     return `const token = process.env.JWT_TOKEN;
 // Jamais hardcoder les secrets
 const verified = jwt.verify(token, process.env.JWT_SECRET);`;
-  } else if (checkId.includes('detected-generic-secret')) {
+  } else if (checkId.includes('detect-generic-secret')) {
     return `require('dotenv').config();
 const apiKey = process.env.API_KEY;
 const dbPassword = process.env.DB_PASSWORD;`;
