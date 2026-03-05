@@ -484,7 +484,6 @@ function createSummaryPage(doc, projectName, scanDate, stats, vulnerabilities) {
   let mediumCount = vulnerabilities.filter(v => v.severity === "MEDIUM").length;
   let lowCount = vulnerabilities.filter(v => v.severity === "LOW").length;
       
-  
   // HIGH
   doc.setFillColor(220, 100, 100);
   doc.rect(summaryX, currentY, summaryWidth, 6, 'F');
@@ -570,8 +569,8 @@ function createSummaryPage(doc, projectName, scanDate, stats, vulnerabilities) {
     
     doc.setFontSize(6);
     doc.setTextColor(0, 0, 0);
-    doc.text(vuln.outil.substring(0, 8), 22, rowY + 2.5);
-    doc.text(vuln.path.substring(0, 25), 45, rowY + 2.5);
+    doc.text(vuln.outil, 22, rowY + 2.5);
+    doc.text(vuln.path, 45, rowY + 2.5);
     
     // Couleur selon la sévérité
     if (vuln.severity === "HIGH") doc.setTextColor(200, 0, 0);
