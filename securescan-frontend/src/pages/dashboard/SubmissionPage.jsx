@@ -3,16 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, Github, FileArchive, Rocket, Loader2 } from 'lucide-react';
 import { createProjectScan } from '../../api/projects.js';
 import { api } from '../../utils/api.js';
+import { useToast } from '../../context/ToastContext.jsx';
 
 export default function SubmissionPage() {
   const [activeTab, setActiveTab] = useState('git');
   const [repoUrl, setRepoUrl] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const handleScan = async (e) => {
     e.preventDefault();
+    const gitRegex = /^https?:\/\/(www\.)?(github\.com|gitlab\.com)\/[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+/;
     setIsScanning(true);
+
+    if (activeTab === 'git' && !gitRegex.test(repoUrl)) {
+      addToast("Le lien Git est invalide. Exemple attendu : https://github.com/user/repo", "error");
+      return;
+    }
 
     try {
       const userStr = localStorage.getItem('user');
@@ -51,14 +59,14 @@ export default function SubmissionPage() {
         console.error("Erreur lors du téléchargement du PDF :", pdfError);
       }
 
-      alert(`Analyse terminée avec succès ! Score de sécurité : ${response.project?.global_score || 0}/100`);
+      addToast(`Analyse terminée avec succès ! Score de sécurité : ${response.project?.global_score || 0}/100`, "success");
 
       localStorage.setItem('currentProjectId', response.project.id);
       navigate(`/dashboard/scan/${response.project.id}`);
 
     } catch (error) {
       console.error("Erreur lors du scan :", error);
-      alert(error.message || "Une erreur est survenue lors du clonage ou de l'analyse.");
+      addToast(error.message || "Une erreur est survenue lors de l'analyse du repo.", "error");
     } finally {
       setIsScanning(false);
     }
@@ -92,7 +100,7 @@ export default function SubmissionPage() {
               <Github size={18} className="text-gray-500" />
             </div>
             <input 
-              type="url" 
+              type="text"
               required 
               value={repoUrl} 
               onChange={(e) => setRepoUrl(e.target.value)} 

@@ -49,7 +49,7 @@ export default function AuthPage() {
                 window.location.href = '/dashboard';
             } else {
                 await registerUser(formData.name, formData.email, formData.password);
-                alert('Inscription réussie ! Tu peux maintenant te connecter.');
+                addToast('Inscription réussie ! Tu peux maintenant te connecter.', "success");
                 setIsLogin(true);
             }
         } catch (err) {

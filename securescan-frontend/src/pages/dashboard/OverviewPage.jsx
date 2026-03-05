@@ -33,7 +33,7 @@ export default function OverviewPage() {
         await deleteProjectScan(projectId);
         setProjects(projects.filter(p => p.id !== projectId)); 
       } catch (error) {
-        alert("Erreur lors de la suppression");
+        addToast(error.message || "Erreur lors de la suppression", "error");
       }
     }
   };
