@@ -5,13 +5,14 @@ import { writeFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { parseResults } from './parserService.js';
+import { generateSecurityReport } from './pdfService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const git = simpleGit();
 
-export const analyzeRepo = async (repoPath, projectId, userId) => {
+export const analyzeRepo = async (repoPath, projectId, projectName, userId) => {
   const tempDir = path.join(__dirname, '/../storage/temp-repos');
   const repoId = Date.now();
   const clonedRepoDir = path.join(tempDir, `r-${repoId}`);
@@ -53,8 +54,11 @@ export const analyzeRepo = async (repoPath, projectId, userId) => {
     });
 
     // Parser les résultats et retourner les données structurées
-    const parsedData = await parseResults(resultsFile, projectId, userId);
-    console.log(parsedData);
+    const parsedData = await parseResults(resultsFile, projectId, projectName, userId);
+
+    const doc = generateSecurityReport(parsedData);
+    doc.save(path.join(resultsDir, `security-report-${repoId}.pdf`));
+    console.log(`✅ Rapport de sécurité généré : security-report-${repoId}.pdf`);
     return parsedData;
   } catch (error) {
     console.error('Erreur lors de l\'analyse du repo:', error);
