@@ -20,9 +20,17 @@ export default function SubmissionPage() {
       }
       const user = JSON.parse(userStr);
       const response = await createProjectScan(repoUrl, user.id);
-
       console.log("Analyse réussie :", response);
+
+      try {
+        console.log("Déclenchement du téléchargement PDF...");
+        window.open(`http://localhost:3001/project/${response.project.id}/export-pdf`, '_blank');
+      } catch (pdfError) {
+        console.error("Erreur lors du déclenchement du PDF :", pdfError);
+      }
+
       alert(`Analyse terminée avec succès ! Score de sécurité : ${response.project?.global_score || 0}/100`);
+
       localStorage.setItem('currentProjectId', response.project.id);
       navigate(`/dashboard/scan/${response.project.id}`);
 
