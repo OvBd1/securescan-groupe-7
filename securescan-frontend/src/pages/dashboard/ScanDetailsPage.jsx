@@ -69,7 +69,7 @@ export default function ScanDetailsPage() {
       console.log("PDF téléchargé avec succès !");
     } catch (error) {
       console.error("Erreur lors du téléchargement du PDF :", error);
-      alert("Erreur lors du téléchargement du PDF. Veuillez réessayer.");
+      addToast(error.message || "Erreur lors du téléchargement du PDF. Veuillez réessayer.", "error");
     }
   };
 

@@ -1,4 +1,4 @@
-import { analyzeRepo } from '../services/gitServices.js';
+import { analyzeRepo, analyzeZIP } from '../services/gitServices.js';
 import db from '../config/db.config.js';
 import { v4 as uuidv4 } from 'uuid';
 import { generateSecurityReport } from '../services/pdfService.js';
@@ -91,8 +91,7 @@ export const createProject = async (req, res) => {
       'INSERT INTO scans (id, projet_id, status, started_at) VALUES (?, ?, ?, ?)',
       [scanId, projectId, 'RUNNING', new Date()]
     );
-
-    console.log(`⏳ Projet ${projectName} créé. Lancement du Scan ID: ${scanId}...`);
+    
     const parsedData = await analyzeRepo(url, projectId, projectName, userId);
     await db.query(
       'UPDATE scans SET status = ?, global_score = ?, finished_at = ? WHERE id = ?',
@@ -120,8 +119,6 @@ export const createProject = async (req, res) => {
       );
     }
 
-    console.log(`✅ Scan terminé ! ${parsedData.stats.total} vulnérabilités trouvées.`);
-
     res.status(201).json({ 
       message: 'Analyse terminée avec succès', 
       project: parsedData.projet,
@@ -129,13 +126,93 @@ export const createProject = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Erreur lors de la création du projet:', error);
+    console.error(' Erreur lors de la création du projet:', error);
   
     if (scanId) {
       await db.query('UPDATE scans SET status = ?, finished_at = ? WHERE id = ?', ['FAILED', new Date(), scanId]).catch(console.error);
     }
 
     res.status(500).json({ message: 'Erreur lors de l\'analyse', error: error.message });
+  }
+};
+
+export const uploadZipAndScan = async (req, res) => {
+  let scanId = null;
+
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Aucun fichier ZIP n'a été reçu." });
+    }
+
+    const { userId, projectName } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ message: "userId est requis" });
+    }
+
+    const zipFilePath = req.file.path;
+    const finalProjectName = projectName || req.file.originalname.replace('.zip', '') || 'Projet_ZIP';
+
+    const projectId = uuidv4();
+    scanId = uuidv4(); 
+
+    // 1. Enregistrement du projet
+    await db.query(
+      'INSERT INTO projets (id, user_id, name, type, source_path) VALUES (?, ?, ?, ?, ?)',
+      [projectId, userId, finalProjectName, 'LOCAL_FOLDER', req.file.originalname]
+    );
+
+    // 2. Création du scan
+    await db.query(
+      'INSERT INTO scans (id, projet_id, status, started_at) VALUES (?, ?, ?, ?)',
+      [scanId, projectId, 'RUNNING', new Date()]
+    );
+    
+    // 3. Appel au service d'analyse ZIP
+    const parsedData = await analyzeZIP(zipFilePath, projectId, finalProjectName, userId);
+    
+    // 4. Mise à jour du score
+    await db.query(
+      'UPDATE scans SET status = ?, global_score = ?, finished_at = ? WHERE id = ?',
+      ['COMPLETED', parsedData.projet.global_score, new Date(), scanId]
+    );
+
+    // 5. Insertion des vulnérabilités
+    if (parsedData.vulnerabilities && parsedData.vulnerabilities.length > 0) {
+      const values = parsedData.vulnerabilities.map(v => [
+        v.id, 
+        scanId,             
+        v.owasp_id || null, 
+        v.outil, 
+        v.check_id, 
+        v.path, 
+        v.line, 
+        v.severity, 
+        v.message, 
+        JSON.stringify(v.code_snippet), 
+        v.is_fixed || 0
+      ]);
+
+      await db.query(
+        'INSERT INTO vulnerabilities (id, scan_id, owasp_id, outil, check_id, path, line, severity, message, code_snippet, is_fixed) VALUES ?',
+        [values]
+      );
+    }
+
+    res.status(201).json({ 
+      message: 'Analyse ZIP terminée avec succès', 
+      project: parsedData.projet,
+      stats: parsedData.stats
+    });
+
+  } catch (error) {
+    console.error(" Erreur lors de l'upload ZIP :", error);
+  
+    if (scanId) {
+      await db.query('UPDATE scans SET status = ?, finished_at = ? WHERE id = ?', ['FAILED', new Date(), scanId]).catch(console.error);
+    }
+
+    res.status(500).json({ message: error.message });
   }
 };
 
