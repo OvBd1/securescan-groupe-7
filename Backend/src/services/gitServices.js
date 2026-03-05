@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 
 const git = simpleGit();
 
-export const analyzeRepo = async (repoPath, projectId, projectName, userId) => {
+export const analyzeRepo = async (repoPath, projectId, projectName, userId, isZip) => {
   const tempDir = path.join(__dirname, '/../storage/temp-repos');
   const repoId = Date.now();
   const clonedRepoDir = path.join(tempDir, `r-${repoId}`);
@@ -24,8 +24,23 @@ export const analyzeRepo = async (repoPath, projectId, projectName, userId) => {
     await mkdir(tempDir, { recursive: true });
     await mkdir(resultsDir, { recursive: true });
 
-    console.log(`Clonage du repo dans ${clonedRepoDir}...`);
-    await git.clone(repoPath, clonedRepoDir, ['--depth', '1', '--config', 'core.longpaths=true']);
+    if (isZip) {
+      // Si c'est une archive ZIP, extraire le contenu dans le dossier cloné
+      console.log(`Extraction de l'archive ZIP ${repoPath} dans ${clonedRepoDir}...`);
+      await mkdir(clonedRepoDir, { recursive: true });
+      await new Promise((resolve, reject) => {
+        exec(`unzip -o ${repoPath} -d ${clonedRepoDir}`, (error, stdout, stderr) => {
+          if (error) return reject(error);
+          console.log(stdout);
+          console.error(stderr);
+          resolve();
+        });
+      });
+    } else {
+      // Cloner le repository Git dans le dossier cloné
+      console.log(`Clonage du repo dans ${clonedRepoDir}...`);
+      await git.clone(repoPath, clonedRepoDir, ['--depth', '1', '--config', 'core.longpaths=true']);
+    }
 
     console.log('Analyse du repo...');  
     await new Promise((resolve, reject) => {

@@ -71,15 +71,20 @@ export const createProject = async (req, res) => {
   let scanId = null;
 
   try {
-    const { url, userId } = req.body;
+    const { url, userId, isZip } = req.body;
 
     if (!url || !userId) {
       return res.status(400).json({ message: 'URL et userId sont requis' });
     }
 
     const projectId = uuidv4();
-    scanId = uuidv4(); 
-    const projectName = url.split('/').pop().replace('.git', '');
+    scanId = uuidv4();
+    let projectName;
+    if (!isZip) {
+      projectName = url.split('/').pop().replace('.git', '');
+    } else {
+      projectName = `ZipUpload_${Date.now()}`;
+    }
 
     await db.query(
       'INSERT INTO projets (id, user_id, name, type, source_path) VALUES (?, ?, ?, ?, ?)',
@@ -92,7 +97,7 @@ export const createProject = async (req, res) => {
     );
 
     console.log(`⏳ Projet ${projectName} créé. Lancement du Scan ID: ${scanId}...`);
-    const parsedData = await analyzeRepo(url, projectId, projectName, userId);
+    const parsedData = await analyzeRepo(url, projectId, projectName, userId, isZip);
     await db.query(
       'UPDATE scans SET status = ?, global_score = ?, finished_at = ? WHERE id = ?',
       ['COMPLETED', parsedData.projet.global_score, new Date(), scanId]
