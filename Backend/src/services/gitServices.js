@@ -24,11 +24,7 @@ export const analyzeRepo = async (repoPath, projectId, projectName, userId) => {
     // Créer les répertoires s'ils n'existent pas
     await mkdir(tempDir, { recursive: true });
     await mkdir(resultsDir, { recursive: true });
-
-    console.log(`Clonage du repo dans ${clonedRepoDir}...`);
-    await git.clone(repoPath, clonedRepoDir, ['--depth', '1', '--config', 'core.longpaths=true']);
-
-    console.log('Analyse du repo...');  
+    await git.clone(repoPath, clonedRepoDir, ['--depth', '1', '--config', 'core.longpaths=true']); 
     await new Promise((resolve, reject) => {
       exec(`semgrep --config auto --json .`, {
         cwd: clonedRepoDir,
@@ -48,7 +44,6 @@ export const analyzeRepo = async (repoPath, projectId, projectName, userId) => {
 
         // Sauvegarder les résultats
         writeFileSync(resultsFile, stdout);
-        console.log(`Résultats sauvegardés dans ${resultsFile}`);
 
         resolve(stdout);
       });
@@ -85,6 +80,7 @@ export const analyzeZIP = async (zipFilePath, projectId, projectName, userId) =>
 
     console.log(`Extraction de l'archivage ZIP ${extractDir}...`);
     const zip = new AdmZip(zipFilePath)
+    zip.extractAllTo(extractDir, true);
 
     console.log('Analyse du ZIP');  
     await new Promise((resolve, reject) => {
