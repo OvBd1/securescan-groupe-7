@@ -19,7 +19,7 @@ export default function DashboardLayout() {
       <aside className="w-64 bg-[#111623] border-r border-gray-800 flex flex-col justify-between hidden md:flex shrink-0">
         <div>
           <div className="p-6 flex items-center gap-3">
-            <div className="bg-blue-500 p-2 rounded-lg"><Shield size={24} className="text-white" /></div>
+            <img src="/iconSecureScan.png" alt="SecureScan" className="w-9 h-10"/>
             <div>
               <h1 className="text-xl font-bold tracking-wide">SecureScan</h1>
               <p className="text-xs text-gray-400">Security Platform</p>

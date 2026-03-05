@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, Github, FileArchive, Rocket, Loader2 } from 'lucide-react';
 import { createProjectScan, createZipScan } from '../../api/projects.js';
 import { useToast } from '../../context/ToastContext.jsx';
+import { api } from '../../utils/api.js';
 
 export default function SubmissionPage() {
   const [activeTab, setActiveTab] = useState('git');
@@ -54,7 +55,29 @@ export default function SubmissionPage() {
 
       try {
         const apiUrl = import.meta.env.VITE_API_URL;
-        window.open(`${apiUrl}/project/${response.project.id}/export-pdf`, '_blank');
+        const token = localStorage.getItem('token');
+        const pdfResponse = await fetch(`${apiUrl}/project/${response.project.id}/export-pdf`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (pdfResponse.ok) {
+          const blob = await pdfResponse.blob();
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `security-report-${response.project.name}.pdf`);
+          document.body.appendChild(link);
+          link.click();
+          link.parentNode.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          console.log("PDF téléchargé avec succès");
+        } else {
+          console.error("Erreur lors du téléchargement du PDF :", pdfResponse.statusText);
+        }
+
       } catch (pdfError) {
         console.error("Erreur PDF :", pdfError);
       }
