@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Github, FileArchive, Rocket, Loader2 } from 'lucide-react';
 import { createProjectScan } from '../../api/projects.js';
+import { api } from '../../utils/api.js';
 
 export default function SubmissionPage() {
   const [activeTab, setActiveTab] = useState('git');
@@ -21,12 +22,33 @@ export default function SubmissionPage() {
       const user = JSON.parse(userStr);
       const response = await createProjectScan(repoUrl, user.id);
       console.log("Analyse réussie :", response);
-
+      
+      console.log("Déclenchement du téléchargement PDF...");
       try {
-        console.log("Déclenchement du téléchargement PDF...");
-        window.open(`http://localhost:3001/project/${response.project.id}/export-pdf`, '_blank');
+        const token = localStorage.getItem("token");
+        const pdfResponse = await fetch(`${import.meta.env.VITE_API_URL}/project/${response.project.id}/export-pdf`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (pdfResponse.ok) {
+          const blob = await pdfResponse.blob();
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `Rapport_SecureScan_${response.project.name || 'rapport'}.pdf`);
+          document.body.appendChild(link);
+          link.click();
+          link.parentNode.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          console.log("PDF téléchargé avec succès !");
+        } else {
+          console.error("Erreur lors du téléchargement du PDF");
+        }
       } catch (pdfError) {
-        console.error("Erreur lors du déclenchement du PDF :", pdfError);
+        console.error("Erreur lors du téléchargement du PDF :", pdfError);
       }
 
       alert(`Analyse terminée avec succès ! Score de sécurité : ${response.project?.global_score || 0}/100`);
